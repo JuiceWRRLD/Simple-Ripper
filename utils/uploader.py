@@ -3,7 +3,6 @@ import requests
 import discord
 
 MAX_DISCORD_FILESIZE = 10 * 1024 * 1024  # 10 MB
-GOFILE_API = "https://api.gofile.io/uploadFile"
 
 async def upload_or_attach(interaction, filepath):
     try:
@@ -12,25 +11,28 @@ async def upload_or_attach(interaction, filepath):
         if file_size <= MAX_DISCORD_FILESIZE:
             await interaction.followup.send(file=discord.File(filepath))
         else:
-            await interaction.followup.send("📤 Subiendo archivo a GoFile...")
+            await interaction.followup.send("📤 El archivo pesa más de 10MB. Subiéndolo a GoFile...")
 
-            with open(filepath, 'rb') as f:
-                response = requests.post(GOFILE_API, files={"file": f})
+            # Paso 1: obtener el server
+            server_resp = requests.get("https://api.gofile.io/getServer").json()
+            server = server_resp["data"]["server"]
 
-            # 👇 Agregamos este print para debug
-            print(f"[DEBUG] GoFile response status: {response.status_code}")
-            print(f"[DEBUG] GoFile response text: {response.text}")
+            # Paso 2: subir el archivo
+            with open(filepath, "rb") as f:
+                upload_resp = requests.post(
+                    f"https://{server}.gofile.io/uploadFile",
+                    files={"file": f}
+                ).json()
 
-            if response.status_code == 200:
-                data = response.json()
-                url = data["data"]["downloadPage"]
+            # Paso 3: revisar si todo ok y enviar link
+            if upload_resp["status"] == "ok":
+                download_page = upload_resp["data"]["downloadPage"]
                 await interaction.followup.send(
-                    f"📎 El archivo pesa más de 10MB. Lo subí acá:\n{url}"
+                    f"✅ Archivo subido a GoFile:\n{download_page}"
                 )
             else:
                 await interaction.followup.send(
-                    f"❌ Error al subir el archivo a GoFile. Código {response.status_code}.\n"
-                    f"📄 Respuesta: {response.text}"
+                    f"❌ Error al subir el archivo a GoFile. Respuesta: {upload_resp}"
                 )
 
     except Exception as e:
