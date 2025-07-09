@@ -1,6 +1,16 @@
 import yt_dlp
 import os
 from utils.convert import convert_to_mp3
+import os
+import base64
+
+# Cargar cookies base64 y guardarlas como cookies.txt
+cookies_base64 = os.getenv("COOKIES_TXT_BASE64")
+if cookies_base64:
+    with open("cookies.txt", "wb") as f:
+        f.write(base64.b64decode(cookies_base64))
+else:
+    print("⚠️ No se encontró COOKIES_TXT_BASE64")
 
 def download(url):
     output_path = "/tmp/youtube_audio.%(ext)s"
@@ -24,6 +34,7 @@ def download_video(url):
     ydl_opts = {
         'format': 'best',
         'outtmpl': output_path
+        'cookiefile': 'cookies.txt',
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
