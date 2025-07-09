@@ -4,7 +4,7 @@ from discord.ext import commands
 import os
 import asyncio
 from downloaders import youtube, soundcloud, instagram, tiktok, x
-from utils import transfer, cleaner
+from utils import transfer, cleaner, pixeldrain
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -59,12 +59,14 @@ async def rip_vid(interaction: discord.Interaction, url: str):
     await interaction.followup.send("🔍 Procesando video...")
     try:
         file_path, file_name = youtube.download_video(url)
+        file_size = os.path.getsize(file_path)
 
-        if os.path.getsize(file_path) < 25 * 1024 * 1024:
+        if file_size < 25 * 1024 * 1024:
             await interaction.followup.send(file=discord.File(file_path))
         else:
-            link = transfer.upload(file_path)
-            await interaction.followup.send(f"📦 El archivo es muy grande. Descargalo acá:\n{link}")
+            await interaction.followup.send("📤 Video grande, subiéndolo a Pixeldrain...")
+            link = pixeldrain.upload(file_path)
+            await interaction.followup.send(f"📦 Descargalo acá:\n{link}")
 
         cleaner.clean_temp(file_path)
 
