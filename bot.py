@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 import os
 import asyncio
-from downloaders import youtube, soundcloud, instagram, tiktok
+from downloaders import youtube, soundcloud, instagram, tiktok, x
 from utils import transfer, cleaner
 
 intents = discord.Intents.default()
@@ -34,6 +34,9 @@ async def rip(interaction: discord.Interaction, url: str):
             file_path, file_name = tiktok.download(url)
         elif "instagram.com" in url:
             file_path, file_name = instagram.download(url)
+        elif "x.com" in url or "twitter.com" in url:
+            await interaction.followup.send("⏬ Descargando desde X...")
+            file_path, file_name = x.download(url)
         else:
             await interaction.followup.send("❌ Plataforma no soportada.")
             return
@@ -65,6 +68,46 @@ async def rip_vid(interaction: discord.Interaction, url: str):
 
         cleaner.clean_temp(file_path)
 
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {str(e)}")
+
+@bot.tree.command(name="rip_soundcloud", description="Descargar audio de SoundCloud a 320kbps")
+async def rip_soundcloud(interaction: discord.Interaction, url: str):
+    await interaction.response.defer()
+    try:
+        await interaction.followup.send("🎵 Descargando desde SoundCloud...")
+        file_path, file_name = soundcloud.download(url)
+        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {str(e)}")
+
+@bot.tree.command(name="rip_x", description="Descargar video desde X (Twitter)")
+async def rip_x(interaction: discord.Interaction, url: str):
+    await interaction.response.defer()
+    try:
+        await interaction.followup.send("⏬ Descargando desde X...")
+        file_path, file_name = x.download(url)
+        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {str(e)}")
+
+@bot.tree.command(name="rip_tiktok", description="Descargar video de TikTok")
+async def rip_tiktok(interaction: discord.Interaction, url: str):
+    await interaction.response.defer()
+    try:
+        await interaction.followup.send("📱 Descargando desde TikTok...")
+        file_path, file_name = tiktok.download(url)
+        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {str(e)}")
+
+@bot.tree.command(name="rip_ig", description="Descargar video o imagen de Instagram")
+async def rip_ig(interaction: discord.Interaction, url: str):
+    await interaction.response.defer()
+    try:
+        await interaction.followup.send("📸 Descargando desde Instagram...")
+        file_path, file_name = instagram.download(url)
+        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {str(e)}")
 
