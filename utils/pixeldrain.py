@@ -15,7 +15,8 @@ def upload(file_path):
                 timeout=60.0
             )
 
-        if response.status_code == 200:
+        # 👇 FIX: Aceptar 200 o 201 como OK
+        if response.status_code in [200, 201]:
             data = response.json()
             return f"https://pixeldrain.com/u/{data['id']}"
         else:
