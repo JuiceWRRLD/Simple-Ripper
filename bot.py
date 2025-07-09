@@ -4,7 +4,8 @@ from discord.ext import commands
 import os
 import asyncio
 from downloaders import youtube, soundcloud, instagram, tiktok, x
-from utils import transfer, cleaner
+from utils import cleaner
+from utils.uploader import upload_or_attach  # ✅ NUEVO IMPORT
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -41,12 +42,7 @@ async def rip(interaction: discord.Interaction, url: str):
             await interaction.followup.send("❌ Plataforma no soportada.")
             return
 
-        if os.path.getsize(file_path) < 25 * 1024 * 1024:
-            await interaction.followup.send(file=discord.File(file_path))
-        else:
-            link = transfer.upload(file_path)
-            await interaction.followup.send(f"📦 El archivo es muy grande. Descargalo acá:\n{link}")
-
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
         cleaner.clean_temp(file_path)
 
     except Exception as e:
@@ -59,13 +55,7 @@ async def rip_vid(interaction: discord.Interaction, url: str):
     await interaction.followup.send("🔍 Procesando video...")
     try:
         file_path, file_name = youtube.download_video(url)
-
-        if os.path.getsize(file_path) < 25 * 1024 * 1024:
-            await interaction.followup.send(file=discord.File(file_path))
-        else:
-            link = transfer.upload(file_path)
-            await interaction.followup.send(f"📦 El archivo es muy grande. Descargalo acá:\n{link}")
-
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
         cleaner.clean_temp(file_path)
 
     except Exception as e:
@@ -77,7 +67,9 @@ async def rip_soundcloud(interaction: discord.Interaction, url: str):
     try:
         await interaction.followup.send("🎵 Descargando desde SoundCloud...")
         file_path, file_name = soundcloud.download(url)
-        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
+        cleaner.clean_temp(file_path)
+
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {str(e)}")
 
@@ -87,7 +79,9 @@ async def rip_x(interaction: discord.Interaction, url: str):
     try:
         await interaction.followup.send("⏬ Descargando desde X...")
         file_path, file_name = x.download(url)
-        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
+        cleaner.clean_temp(file_path)
+
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {str(e)}")
 
@@ -97,7 +91,9 @@ async def rip_tiktok(interaction: discord.Interaction, url: str):
     try:
         await interaction.followup.send("📱 Descargando desde TikTok...")
         file_path, file_name = tiktok.download(url)
-        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
+        cleaner.clean_temp(file_path)
+
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {str(e)}")
 
@@ -107,7 +103,9 @@ async def rip_ig(interaction: discord.Interaction, url: str):
     try:
         await interaction.followup.send("📸 Descargando desde Instagram...")
         file_path, file_name = instagram.download(url)
-        await interaction.followup.send(file=discord.File(file_path, filename=file_name))
+        await upload_or_attach(interaction, file_path)  # ✅ NUEVO
+        cleaner.clean_temp(file_path)
+
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {str(e)}")
 
